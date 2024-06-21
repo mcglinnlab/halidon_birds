@@ -6,7 +6,9 @@ dat$X25m <- ifelse(is.na(dat$X25m), 0, dat$X25m)
 dat$X50m <- ifelse(is.na(dat$X50m), 0, dat$X50m)
 dat$date <- as.Date(dat$date, format = "%m/%d/%Y")
 head(dat)
+
 # create unique sampling event id
+dat$uni_id_date <- with(dat, paste(site, date, sep='_'))
 
 
 # use mobr::calc_comm_div to compute diversity indices for each sampling event.
