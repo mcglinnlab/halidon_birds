@@ -97,7 +97,14 @@ hh_mob_in <- make_mob_in(comm, hh_att, coord_names = c('utm_easting', 'utm_north
 hh_mob_in
 
 # Data Analysis
+par(mfrow=c(1,1))
 plot_rarefaction(hh_mob_in, 'treatment', ref_level = 'control-closed', 'sSBR', lwd = 4)
+par(mfrow=c(1,2))
+plot_rarefaction(hh_mob_in, 'treatment', ref_level = 'control-closed', 'IBR', lwd = 4)
+par(mfrow=c(1,2))
+plot_rarefaction(hh_mob_in, 'treatment', ref_level = 'control-closed', 'IBR', lwd = 4,
+                 scales = 'gamma')
+
 
 oldpar <- par(no.readonly = TRUE)
 par(mfrow = c(1,2))
@@ -114,7 +121,47 @@ plot_abu(hh_mob_in, 'treatment', type = 'rad', scale = 'gamma' , log = 'x')
 par(oldpar)
 
 # Two-Scale Analysis
-indices <- c('N', 'S', 'S_n', 'S_PIE')
+library(purrr)
+library(dplyr)
+
+treatments <- unique(hh_mob_in$env$treatment)
+sample_list <- hh_mob_in$comm %>%
+  group_by(hh_mob_in$env$treatment) %>%
+  group_map(~ get_samples(.x, algo = 'boot', n_boot = 500))
+names(sample_list) <- treatments
+
+indices <- c('N', 'S', 'S_C', 'S_n', 'S_PIE')
+effort <- 20
+sample_div <- lapply(sample_list, calc_comm_div_ci, index = indices,
+                     effort = effort)
+sample_div <- bind_rows(sample_div, .id = 'id')
+sample_div
+
+C_min <- min(sample_div$gamma_coverage, na.rm =TRUE)
+# rerun analysis for this target coverage - will only change S_C values
+sample_div <- lapply(sample_list, calc_comm_div_ci, index = indices,
+                     effort = effort, C_target_gamma = C_min)
+sample_div <- bind_rows(sample_div, .id = 'id')
+sample_div
+
+# alpha and gamma scale comparison
+subset(sample_div, scale != 'beta') |> 
+  ggplot() + 
+  geom_boxplot(aes(x = id, y = me, col=scale)) + 
+  geom_errorbar(aes(x = id, y = me, ymin = lo, ymax = hi, col=scale),
+                width = 0.2, position=position_dodge(0.8)) + 
+  facet_wrap(vars(index), scales = 'free')
+
+# beta diversity comparison
+subset(sample_div, scale == 'beta') |> 
+  ggplot() + 
+  geom_boxplot(aes(x = id, y = me)) + 
+  geom_errorbar(aes(x = id, y = me, ymin = lo, ymax = hi),
+                width = 0.2, position=position_dodge(0.8)) + 
+  facet_wrap(vars(index), scales = 'free')
+
+
+
 hh_div <- tibble(comm) %>%
   group_by(group = hh_att$treatment) %>%
   group_modify(~ calc_comm_div(.x, index = indices, effort = 5,
