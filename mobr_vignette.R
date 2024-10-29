@@ -86,7 +86,12 @@ hh_att <- read_sheet("https://docs.google.com/spreadsheets/d/1LsEtgikV3PtJJPZsW5
 # reorder the attribute table to match the order of the sites in the 
 # community matrix
 hh_att <- hh_att[match(row.names(comm), hh_att$site), ]
-
+# add recoding of treatments
+hh_att$treatment2 <- hh_att$treatment
+hh_att$treatment2 <- ifelse(hh_att$treatment2 == 'hack-squirt', 'control-closed',
+                            hh_att$treatment2)
+#hh_att$treatment2 <- ifelse(hh_att$treatment2 == 'cut-leave', 'control-closed',
+#                            hh_att$treatment2)
 
 # Work Through
 str(comm)
@@ -120,9 +125,63 @@ plot_abu(hh_mob_in, 'treatment', type = 'rad', scale = 'gamma' , log = 'x')
 
 par(oldpar)
 
+
+comm_div <- calc_comm_div(hh_mob_in$comm, index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
+                          effort = 20, scale = 'alpha')
+
+hh_dat <- data.frame(comm_div, hh_mob_in$env)
+
+plot(value ~ dist_avg, subset = index == 'S' & treatment != 'upland',
+     data = hh_dat)
+
+
+boxplot(densiometer_avg ~ treatment, subset = index == 'S' & treatment != 'upland',
+     data = hh_dat)
+
 # Two-Scale Analysis
-library(purrr)
-library(dplyr)
+
+tmpN <- get_mob_stats(hh_mob_in, "treatment", ref_level = 'control-closed',
+                     index = 'N', ci = TRUE,
+                     ci_algo = 'boot', ci_n_boot = 200, n_perm = 199)
+tmpN
+
+plot(tmpN, 'treatment')
+
+tmp <- get_mob_stats(hh_mob_in, "treatment", ref_level = 'control-closed',
+                      index = c('S', 'S_n', 'S_C', 'S_PIE'), ci = TRUE,
+                      ci_algo = 'boot', ci_n_boot = 200, n_perm = 199)
+tmp
+
+p <- plot(tmp, 'treatment')
+p$S
+p$S_n
+p$S_C
+p$S_PIE
+
+table(hh_mob_in$env$treatment)
+trts <- c('control-closed', 'control-open', 'cut-leave','cut_remove','hack-squirt')
+tmp <- get_mob_stats(subset(hh_mob_in, treatment %in% trts),
+                     "treatment", ref_level = 'control-closed',
+                     index = c('N', 'S', 'S_n', 'S_C', 'S_PIE'), ci = TRUE)
+tmp
+
+trts2 <- c('control-closed', 'control-open', 'cut-leave','cut-remove')
+tmp2 <- get_mob_stats(subset(hh_mob_in, treatment2 %in% trts2),
+                     "treatment2", ref_level = 'control-closed',
+                     index = c('S', 'S_n', 'S_C', 'S_PIE'), ci = TRUE)
+tmp2
+
+tmp2N <- get_mob_stats(subset(hh_mob_in, treatment2 %in% trts2),
+                       "treatment2", ref_level = 'control-closed',
+                       index = 'N', ci = TRUE)
+
+plot(tmp2, 'treatment2')
+
+
+site_div <- get_mob_stats(subset(hh_mob_in, treatment != 'upland'),
+                          "site", ref_level = "HH-02-W",
+                          index = c('S', 'S_n', 'S_C', 'S_PIE'), ci = TRUE)
+
 
 treatments <- unique(hh_mob_in$env$treatment)
 sample_list <- hh_mob_in$comm %>%
