@@ -88,7 +88,7 @@ tmp <- dplyr::left_join(hh_attp, lidar, by = 'site_old')
 hh_attp$canopy_cover <- with(tmp, 
                              ifelse(is.na(densiometer_avg),
                              canopy_cover_sim,
-                             100 - hh_attp$densiometer_avg))
+                             hh_attp$densiometer_avg))
 
 # export files -----
 write.csv(comm_25, file='./data/comm_25.csv', row.names = TRUE)
