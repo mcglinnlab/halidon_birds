@@ -58,6 +58,10 @@ comm_tot <- ifelse(is.na(comm_tot), 0, comm_tot)
 comm_25p <- with(hh_abu, tapply(`25m`, list(site_date, species), sum))
 comm_totp <- with(hh_abu, tapply(total, list(site_date, species), sum))
 
+comm_25p <- ifelse(is.na(comm_25p), 0, comm_25p)
+comm_totp <- ifelse(is.na(comm_totp), 0, comm_totp)
+
+
 # create attribute table on the point count scale ----
 head(hh_att)
 sites <- substring(row.names(comm_25p), 1, 7)
