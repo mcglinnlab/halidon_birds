@@ -1,37 +1,57 @@
 library(mobr)
 library(dplyr)
+library(vegan)
 #library(remotes)
 #install_github("mobiodiv/mobr", ref = "dev")
 
-dat <- read.csv('./data/bird_data_year4.csv')
-# small data cleaning
-dat <- subset(dat, subset = dat$species != "")
-dat <- subset( dat, subset = dat$prelim_data != 1)
-dat$X25m <- ifelse(is.na(dat$X25m), 0, dat$X25m)
-dat$X50m <- ifelse(is.na(dat$X50m), 0, dat$X50m)
-dat$date <- as.Date(dat$date, format = "%m/%d/%Y")
-head(dat)
+# start at point count scale
+comm_25p <- read.csv('./data/comm_25p.csv', row.names = 1)
+comm_25p[1:5, 1:5]
 
-# create unique sampling event id
-dat$uni_id_date <- with(dat, paste(new.site.id, date, sep='_'))
+hh_attp <- read.csv('./data/hh_attp.csv')
 
-# site by species index - total
-comm <- with(dat, tapply(total, list(uni_id_date, species), sum))
-comm <- ifelse(is.na(comm), 0, comm)
-summary(comm)
-
-table(dat$species)
-
-# calculate div stats
-div_stats <-  calc_comm_div(comm, index = c("N", "S", "S_n", "S_C", "S_PIE"), effort = 5)
-
-# group by different treatments
-grouped_data <- dat %>%
-  group_by(treatment)
-
+birds_25p <- make_mob_in(comm_25p, hh_attp,
+                       coord_names = c('utm_easting', 'utm_northing'))
 
 # use mobr::calc_comm_div to compute diversity indices for each sampling event.
 # should do this for all species in each site and also for just observations 
 # within 25m. Jackson only used 25m observations
+
+
+# spatial analysis of 2024 data only at point count scale
+stats_trt <- get_mob_stats(subset(birds_25p, year == 2024), 
+                           group_var = 'treatment', 
+                           index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
+                           ci_n_boot = 100)
+# no apparent treatment effects
+plot(stats_25p, group_var = 'treatment')
+
+
+# todo: 
+# recode treatments to be more informative
+# look at temporal change
+
+
+# temporal analysis of pre / post 
+stats_pp <- get_mob_stats(birds_25p, 
+                           group_var = 'pre_post', 
+                           index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
+                           ci_n_boot = 100)
+
+plot(stats_pp, 'pre_post')
+
+
+bird_rda <- rda(comm_25p ~ hh_attp$pre_post + hh_attp$treatment)
+anova(bird_rda)
+anova(bird_rda, by='terms')
+RsquareAdj(bird_rda)
+
+plot(bird_rda, display ='species')
+points(bird_rda, display ='bp', col='red')
+text(bird_rda, display ='bp', col='red')
+
+
+boxplot(comm_25p$BACS ~ hh_attp$year, subset = comm_25p$BACS > 0)
+
 
 
