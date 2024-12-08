@@ -33,7 +33,6 @@ stats_trt <- get_mob_stats(subset(birds_25p, year == 2024 & treatment != "upland
 # no apparent treatment effects
 plot(stats_trt, group_var = 'treatment')
 
-
 # todo: 
 # recode treatments to be more informative
 # look at temporal change
@@ -45,17 +44,25 @@ stats_pp <- get_mob_stats(birds_25p,
                            index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
                            ci_n_boot = 100)
 
+svg("mob_stats_plot", width = 7, height = 5)
+
 plot(stats_pp, 'pre_post')
 
+dev.off()
 
-bird_rda <- rda(comm_25p ~ hh_attp$pre_post + hh_attp$treatment)
-anova(bird_rda)
+bird_rda <- rda(comm_25p ~ hh_attp$pre_post + hh_attp$treatment) 
+anova(bird_rda) 
 anova(bird_rda, by='terms')
 RsquareAdj(bird_rda)
 
-plot(bird_rda, display ='species')
-points(bird_rda, display ='bp', col='red')
-text(bird_rda, display ='bp', col='red')
+# save rda plot as an svg
+svg("treatment_rda.svg", width = 7, height = 5)  # Open SVG device
+
+plot(bird_rda, display = 'species')
+points(bird_rda, display = 'bp', col = 'red') 
+text(bird_rda, display = 'bp', col = 'red') 
+
+dev.off()  # Close SVG device
 
 
 boxplot(comm_25p$BACS ~ hh_attp$year, subset = comm_25p$BACS > 0)
