@@ -10,6 +10,12 @@ comm_25p[1:5, 1:5]
 
 hh_attp <- read.csv('./data/hh_attp.csv')
 
+# group hack and squirt with control closed treatment
+hh_attp <- hh_attp %>%
+  mutate(treatment = ifelse(treatment == "hack-squirt", "control-closed", treatment)) %>%
+  group_by(treatment)
+
+
 birds_25p <- make_mob_in(comm_25p, hh_attp,
                        coord_names = c('utm_easting', 'utm_northing'))
 
@@ -19,12 +25,13 @@ birds_25p <- make_mob_in(comm_25p, hh_attp,
 
 
 # spatial analysis of 2024 data only at point count scale
-stats_trt <- get_mob_stats(subset(birds_25p, year == 2024), 
+# remove uplands from analysis
+stats_trt <- get_mob_stats(subset(birds_25p, year == 2024 & treatment != "upland"), 
                            group_var = 'treatment', 
                            index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
                            ci_n_boot = 100)
 # no apparent treatment effects
-plot(stats_25p, group_var = 'treatment')
+plot(stats_trt, group_var = 'treatment')
 
 
 # todo: 
