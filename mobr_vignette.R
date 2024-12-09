@@ -1,55 +1,16 @@
-# Vignette Set Up
-library(mobr)
-
-# remember to add species filtering step in data processing
-# check on which species has 31 and 12 for point count abundance
-
-dat <- read.csv('./data/bird_data_year4.csv')
-# small data cleaning
-dat <- subset(dat, subset = dat$species != "")
-dat <- subset( dat, subset = dat$prelim_data != 1)
-dat$X25m <- ifelse(is.na(dat$X25m), 0, dat$X25m)
-dat$X50m <- ifelse(is.na(dat$X50m), 0, dat$X50m)
-dat$date <- as.Date(dat$date, format = "%m/%d/%Y")
-head(dat)
-
-# create unique sampling event id
-dat$uni_id_date <- with(dat, paste(new.site.id, date, sep='_'))
-
-# site by species index - total
-comm <- with(dat, tapply(total, list(uni_id_date, species), sum))
-comm <- ifelse(is.na(comm), 0, comm)
-summary(comm)
-table(dat$species)
-
-######## mobr Beta Diversity Vignette START ######## 
-# 1:_ where _ is the number of sites that it is comparing between
-  # Do we need to have the specific number of sites? Will mobr automatically separate the values by site?
-  # Or, is this better to have by the uni_id_date that was created above (of which we have 112)?
-# Determining how many sites I have
-library(dplyr)
-length(unique(dat$new.site.id))
-# I have 38 sites
-# Calculate whitaker's beta
-calc_comm_div(comm[1:38, ], 'S')
-# Calculate beta for S_PIE
-calc_comm_div(comm[1:38, ], 'S_PIE')
-# Calculate beta for C (specific coverage)
-calc_comm_div(comm[1:38, ], 'S_C')
-# Calculate beta for S_n (rarefied richness)
-calc_comm_div(comm[1:38, ], 'S_n', effort = 5)
-calc_comm_div(comm[1:38, ], 'S_n', effort = 20)
-# Calculate just beta diversity - not generally recommended without alpha and gamma
-calc_beta_div(comm[1:38, ], 'S')
 
 ######## mobr Scale-Dependent Biodiversity Changes Vignette START ######## 
 library(mobr)
-library(dplyr)
-library(ggplot2)
 library(googlesheets4)
 
 # Data for this vignette
 dat <- read.csv('./data/bird_data_year4.csv')
+
+sp_to_drop <- c("AMCR", "BBWD", "WOST", "NOBO", "CAGO", 
+                "CONI", "FICR", "GREG", "MIKI", "RSHA",
+                "RTHA", "LAGU")
+dat <- subset(dat, !(species %in% sp_to_drop))
+
 # Remove wetland 43 because it was mulched in 2024
 dat <- subset(dat, !(wetland_id %in% c('HH-43-W', 'HH-43-U')))
 # remove wetland 5 because it was a control disturbed (only one replicate of this type)
@@ -65,6 +26,10 @@ dat$uni_id_date <- with(dat, paste(new.site.id, date, sep='_'))
 
 # check that total in dat is actual total
 dat[(dat$X25m + dat$X50m) != dat$total, ]
+# there is a lot where total is incorrect
+# recaculate total
+dat$total <- dat$X25m + dat$X50m
+
 
 # Create Community Matrix
 # going to combine 25 and 50 m radius by using total (potentially change in future)
@@ -138,49 +103,53 @@ plot(value ~ dist_avg, subset = index == 'S' & treatment != 'upland',
 boxplot(densiometer_avg ~ treatment, subset = index == 'S' & treatment != 'upland',
      data = hh_dat)
 
+
+par(mfrow=c(4,1))
+boxplot(value ~ site, subset = index == 'S' & treatment != 'upland',
+     data = hh_dat, main = 'S')
+boxplot(value ~ site, subset = index == 'S_n' & treatment != 'upland',
+        data = hh_dat, main = 'S_n')
+boxplot(value ~ site, subset = index == 'S_PIE' & treatment != 'upland',
+        data = hh_dat, main = 'S_PIE')
+boxplot(value ~ site, subset = index == 'S_C' & treatment != 'upland',
+        data = hh_dat, main = 'S_C')
+
 # Two-Scale Analysis
 
-tmpN <- get_mob_stats(hh_mob_in, "treatment", ref_level = 'control-closed',
-                     index = 'N', ci = TRUE,
-                     ci_algo = 'boot', ci_n_boot = 200, n_perm = 199)
-tmpN
+hh_stats <- get_mob_stats(hh_mob_in, "treatment")
+hh_stats
 
-plot(tmpN, 'treatment')
+plot(hh_stats, 'treatment')
 
-tmp <- get_mob_stats(hh_mob_in, "treatment", ref_level = 'control-closed',
-                      index = c('S', 'S_n', 'S_C', 'S_PIE'), ci = TRUE,
-                      ci_algo = 'boot', ci_n_boot = 200, n_perm = 199)
-tmp
-
-p <- plot(tmp, 'treatment')
-p$S
-p$S_n
-p$S_C
-p$S_PIE
 
 table(hh_mob_in$env$treatment)
-trts <- c('control-closed', 'control-open', 'cut-leave','cut_remove','hack-squirt')
-tmp <- get_mob_stats(subset(hh_mob_in, treatment %in% trts),
-                     "treatment", ref_level = 'control-closed',
-                     index = c('N', 'S', 'S_n', 'S_C', 'S_PIE'), ci = TRUE)
-tmp
 
-trts2 <- c('control-closed', 'control-open', 'cut-leave','cut-remove')
-tmp2 <- get_mob_stats(subset(hh_mob_in, treatment2 %in% trts2),
-                     "treatment2", ref_level = 'control-closed',
-                     index = c('S', 'S_n', 'S_C', 'S_PIE'), ci = TRUE)
-tmp2
-
-tmp2N <- get_mob_stats(subset(hh_mob_in, treatment2 %in% trts2),
-                       "treatment2", ref_level = 'control-closed',
-                       index = 'N', ci = TRUE)
-
-plot(tmp2, 'treatment2')
+trts <- c('control-closed', 'hack-squirt', 'cut-leave','cut-remove', 'control-open')
+hh_stats <- get_mob_stats(subset(hh_mob_in, treatment %in% trts),
+                     "treatment", index = c('N', 'S', 'S_n', 'S_C', 'S_PIE'), )
+plot(hh_stats, 'treatment', group_order = trts)
 
 
-site_div <- get_mob_stats(subset(hh_mob_in, treatment != 'upland'),
-                          "site", ref_level = "HH-02-W",
-                          index = c('S', 'S_n', 'S_C', 'S_PIE'), ci = TRUE)
+library(vegan)
+
+mod <- rda(hh_mob_in$comm ~ hh_mob_in$env$treatment,
+           subset = hh_mob_in$env$treatment %in% trts)
+anova(mod, by = 'margin')
+RsquareAdj(mod)
+#$r.squared
+#[1] 0.2685041
+#
+#adj.r.squared
+#[1] 0.02467216
+
+plot(mod)
+
+
+
+
+# BACS
+mean(hh_mob_in$comm$BACS)
+
 
 
 treatments <- unique(hh_mob_in$env$treatment)

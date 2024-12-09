@@ -35,7 +35,7 @@ svg("./figs/S_plot.svg", width = 7*1.5, height = 5)
 plot(stats_trt, group_var = 'treatment', index = 'S')
 dev.off()
 
-svg("./figs/N_plot.svg", width = 7*1.5, height = 5)
+svg("./figs/N_plot.svg", width = (7.5*1.5)*0.66, height = 5)
 plot(stats_trt, group_var = 'treatment', index = 'N')
 dev.off()
 
@@ -43,6 +43,7 @@ dev.off()
 # recode treatments to be more informative
 # look at temporal change
 
+plot(1:10, 1:10, col = "#1462AE", pch =19)
 
 # temporal analysis of pre / post 
 stats_pp <- get_mob_stats(birds_25p, 
@@ -50,7 +51,7 @@ stats_pp <- get_mob_stats(birds_25p,
                            index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
                            ci_n_boot = 100)
 
-svg("mob_stats_plot", width = 7, height = 5)
+svg("mob_stats_plot.svg", width = 7, height = 5)
 
 plot(stats_pp, 'pre_post')
 
@@ -61,14 +62,26 @@ anova(bird_rda)
 anova(bird_rda, by='terms')
 RsquareAdj(bird_rda)
 
+bird_cca<- cca(comm_25p ~ hh_attp$pre_post + hh_attp$treatment) 
+anova(bird_cca) 
+anova(bird_cca, by='terms')
+RsquareAdj(bird_cca)
+
 # save rda plot as an svg
 svg("treatment_rda.svg", width = 7, height = 5)  # Open SVG device
 
-plot(bird_rda, display = 'species')
+plot(bird_rda, display = 'species', type = 'n')
+orditorp(bird_rda, display = 'species', )
 points(bird_rda, display = 'bp', col = 'red') 
-text(bird_rda, display = 'bp', col = 'red') 
+text(bird_rda, display = 'cn', col = 'red') 
 
 dev.off()  # Close SVG device
+
+
+plot(bird_cca, display = 'species', type = 'n')
+orditorp(bird_cca, display = 'species', )
+points(bird_cca, display = 'bp', col = 'red') 
+text(bird_cca, display = 'cn', col = 'red') 
 
 
 boxplot(comm_25p$BACS ~ hh_attp$year, subset = comm_25p$BACS > 0)
