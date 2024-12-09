@@ -31,7 +31,13 @@ stats_trt <- get_mob_stats(subset(birds_25p, year == 2024 & treatment != "upland
                            index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
                            ci_n_boot = 100)
 # no apparent treatment effects
-plot(stats_trt, group_var = 'treatment')
+svg("./figs/S_plot.svg", width = 7*1.5, height = 5)
+plot(stats_trt, group_var = 'treatment', index = 'S')
+dev.off()
+
+svg("./figs/N_plot.svg", width = 7*1.5, height = 5)
+plot(stats_trt, group_var = 'treatment', index = 'N')
+dev.off()
 
 # todo: 
 # recode treatments to be more informative
