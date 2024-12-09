@@ -51,21 +51,19 @@ stats_pp <- get_mob_stats(birds_25p,
                            index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
                            ci_n_boot = 100)
 
-svg("mob_stats_plot.svg", width = 7, height = 5)
-
-plot(stats_pp, 'pre_post')
-
+svg("./figs/temp_S_plot.svg", width = 7*1.5, height = 5)
+plot(stats_pp, group_var = 'pre_post', index = 'S')
 dev.off()
 
+svg("./figs/temp_N_plot.svg", width = (7.5*1.5)*0.66, height = 5)
+plot(stats_pp, group_var = 'pre_post', index = 'N')
+dev.off()
+
+# rda
 bird_rda <- rda(comm_25p ~ hh_attp$pre_post + hh_attp$treatment) 
 anova(bird_rda) 
 anova(bird_rda, by='terms')
 RsquareAdj(bird_rda)
-
-bird_cca<- cca(comm_25p ~ hh_attp$pre_post + hh_attp$treatment) 
-anova(bird_cca) 
-anova(bird_cca, by='terms')
-RsquareAdj(bird_cca)
 
 # save rda plot as an svg
 svg("treatment_rda.svg", width = 7, height = 5)  # Open SVG device
@@ -77,6 +75,11 @@ text(bird_rda, display = 'cn', col = 'red')
 
 dev.off()  # Close SVG device
 
+# cca 
+bird_cca<- cca(comm_25p ~ hh_attp$pre_post + hh_attp$treatment) 
+anova(bird_cca) 
+anova(bird_cca, by='terms')
+RsquareAdj(bird_cca)
 
 plot(bird_cca, display = 'species', type = 'n')
 orditorp(bird_cca, display = 'species', )
