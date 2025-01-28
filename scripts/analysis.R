@@ -27,7 +27,16 @@ birds_25p <- make_mob_in(comm_25p, hh_attp,
 indices <- c('N', 'S', 'S_n', 'S_PIE', 'S_asymp')
 sub_dat <- subset(birds_25p,  treatment != "upland")
 
-sub_dat <- birds_25p
+sub_dat <- birds_25p$comm
+
+sub_rda <- rda(sub_dat ~  treatment, data =  birds_25p$env, subset = treatment != "upland")
+plot(sub_rda, display = c('sp', 'cn'))
+anova(sub_rda, by = 'terms')
+
+bggn_lm <- lm(sub_dat$BGGN ~ treatment, data =  birds_25p$env, subset = treatment != "upland")
+summary(bggn_lm)
+
+boxplot(sub_dat$BHNU ~ treatment, data =  birds_25p$env, subset = treatment != "upland")
 
 stats_raw <- calc_comm_div(sub_dat$comm,
                            index = indices, effort = 5, scales = 'alpha')
