@@ -26,6 +26,9 @@ birds_25p <- make_mob_in(comm_25p, hh_attp,
 
 indices <- c('N', 'S', 'S_n', 'S_PIE', 'S_asymp')
 sub_dat <- subset(birds_25p,  treatment != "upland")
+
+sub_dat <- birds_25p
+
 stats_raw <- calc_comm_div(sub_dat$comm,
                            index = indices, effort = 5, scales = 'alpha')
 tst <- cbind(stats_raw, sub_dat$env)
@@ -33,10 +36,11 @@ tst <- cbind(stats_raw, sub_dat$env)
 Nmod <- lm(value ~ treatment + densiometer_avg + dist_avg + dbh_avg + disked ,
             data = tst, subset = index == 'N')
 summary(Nmod)
+car::Anova(Nmod, type = 3)
 
-Nmodre <- lme(value ~ treatment,
+Nmodre <- lme(value ~ treatment + disked,
               random = ~1 | year / site, data = tst, na.action = na.omit, 
-              subset = index == "S_PIE")
+              subset = index == "S")
 summary(Nmodre)
 car::Anova(Nmodre, type = 3)
 
