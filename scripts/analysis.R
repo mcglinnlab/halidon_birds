@@ -1,6 +1,7 @@
 library(mobr)
 library(dplyr)
 library(vegan)
+library(nlme)
 #library(remotes)
 #install_github("mobiodiv/mobr", ref = "dev")
 
@@ -23,8 +24,23 @@ birds_25p <- make_mob_in(comm_25p, hh_attp,
 # should do this for all species in each site and also for just observations 
 # within 25m. Jackson only used 25m observations
 
+indices <- c('N', 'S', 'S_n', 'S_PIE', 'S_asymp')
+sub_dat <- subset(birds_25p,  treatment != "upland")
+stats_raw <- calc_comm_div(sub_dat$comm,
+                           index = indices, effort = 5, scales = 'alpha')
+tst <- cbind(stats_raw, sub_dat$env)
 
-# spatial analysis of 2024 data only at point count scale
+Nmod <- lm(value ~ treatment + densiometer_avg + dist_avg + dbh_avg + disked ,
+            data = tst, subset = index == 'N')
+summary(Nmod)
+
+Nmodre <- lme(value ~ treatment,
+              random = ~1 | year / site, data = tst, na.action = na.omit, 
+              subset = index == "S_PIE")
+summary(Nmodre)
+car::Anova(Nmodre, type = 3)
+
+# spatial analysis of 2024 data only at point , scale
 # remove uplands from analysis
 stats_trt <- get_mob_stats(subset(birds_25p, year == 2024 & treatment != "upland"), 
                            group_var = 'treatment', 
@@ -88,6 +104,10 @@ text(bird_cca, display = 'cn', col = 'red')
 
 
 boxplot(comm_25p$BACS ~ hh_attp$year, subset = comm_25p$BACS > 0)
+
+# multiple regression modeling of diversity indices
+subset(stats_trt$comm_div, index = "N")
+
 
 
 
