@@ -20,6 +20,13 @@ hh_attp <- hh_attp %>%
 birds_25p <- make_mob_in(comm_25p, hh_attp,
                        coord_names = c('utm_easting', 'utm_northing'))
 
+
+# make treatments _pre or _post
+birds_25p$env$treatment <- ifelse(birds_25p$env$pre_post == "pre", paste(birds_25p$env$treatment, "_pre", sep = ""), 
+                              paste(birds_25p$env$treatment, "_post", sep = ""))
+print(birds_25p)
+
+
 # use mobr::calc_comm_div to compute diversity indices for each sampling event.
 # should do this for all species in each site and also for just observations 
 # within 25m. Jackson only used 25m observations
@@ -53,20 +60,74 @@ Nmodre <- lme(value ~ treatment + disked,
 summary(Nmodre)
 car::Anova(Nmodre, type = 3)
 
+
 # spatial analysis of 2024 data only at point , scale
 # remove uplands from analysis
-stats_trt <- get_mob_stats(subset(birds_25p, year == 2024 & treatment != "upland"), 
+stats_trt <- get_mob_stats(subset(birds_25p, treatment != "upland_pre" & treatment != "upland_post"), 
                            group_var = 'treatment', 
-                           index = c('N', 'S', 'S_n', 'S_PIE', 'S_C'),
+                           index = c('N', 'S', 'S_n', 'S_PIE', 'S_asymp'),
                            ci_n_boot = 100)
-# no apparent treatment effects
-svg("./figs/S_plot.svg", width = 7*1.5, height = 5)
-plot(stats_trt, group_var = 'treatment', index = 'S')
-dev.off()
 
-svg("./figs/N_plot.svg", width = (7.5*1.5)*0.66, height = 5)
-plot(stats_trt, group_var = 'treatment', index = 'N')
-dev.off()
+# no apparent treatment effects
+plot(stats_trt, group_var = 'treatment')
+
+# plot _pre & _post treatments next to each other for comparison
+# N index ----
+N_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'N')
+# Create a bar plot
+barplot_N <- barplot(N_data$value, 
+        names.arg = N_data$treatment, 
+        beside = TRUE, 
+        col = "lightblue", 
+        ylab = "N", 
+        las = 2)  
+arrows(barplot_N, N_data$lo_value, barplot_N, N_data$hi_value, 
+       angle = 90, code = 3, length = 0.1, col = "black")
+# S index ----
+S_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'S')
+# Create a bar plot
+barplot_S <- barplot(S_data$value, 
+                     names.arg = S_data$treatment, 
+                     beside = TRUE, 
+                     col = "lightblue",
+                     ylab = "S", 
+                     las = 2)  
+arrows(barplot_S, S_data$lo_value, barplot_S, S_data$hi_value, 
+       angle = 90, code = 3, length = 0.1, col = "black")
+# S_n index ----
+S_n_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'S_n')
+# Create a bar plot
+barplot_S_n <- barplot(S_n_data$value, 
+                     names.arg = S_n_data$treatment, 
+                     beside = TRUE, 
+                     col = "lightblue", 
+                     ylab = "S_n", 
+                     las = 2)  
+arrows(barplot_S_n, S_n_data$lo_value, barplot_S_n, S_n_data$hi_value, 
+       angle = 90, code = 3, length = 0.1, col = "black")
+# S_PIE index ----
+S_PIE_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'S_PIE')
+# Create a bar plot
+barplot_S_PIE <- barplot(S_PIE_data$value, 
+                     names.arg = S_PIE_data$treatment, 
+                     beside = TRUE, 
+                     col = "lightblue", 
+                     ylab = "S_PIE", 
+                     las = 2)  
+arrows(barplot_S_PIE, S_PIE_data$lo_value, barplot_S_PIE, S_PIE_data$hi_value, 
+       angle = 90, code = 3, length = 0.1, col = "black")
+# S_asymp index ----
+S_asymp_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'S_asymp')
+# Create a bar plot
+barplot_S_asymp <- barplot(S_asymp_data$value, 
+                         names.arg = S_asymp_data$treatment, 
+                         beside = TRUE, 
+                         col = "lightblue",
+                         ylab = "S_asymp", 
+                         las = 2)  
+arrows(barplot_S_asymp, S_asymp_data$lo_value, barplot_S_asymp, S_asymp_data$hi_value, 
+       angle = 90, code = 3, length = 0.1, col = "black")
+# ----
 
 # todo: 
 # recode treatments to be more informative
