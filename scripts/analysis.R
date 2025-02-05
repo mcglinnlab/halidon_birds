@@ -36,7 +36,7 @@ sub_dat <- subset(birds_25p,  treatment != "upland")
 
 sub_dat <- birds_25p$comm
 
-sub_rda <- rda(sub_dat ~  treatment, data =  birds_25p$env, subset = treatment != "upland")
+sub_rda <- rda(sub_dat ~  treatment, data =  birds_25p$env, subset = treatment != "upland_pre" & treatment != "upland_post")
 plot(sub_rda, display = c('sp', 'cn'))
 anova(sub_rda, by = 'terms')
 
@@ -150,20 +150,15 @@ plot(stats_pp, group_var = 'pre_post', index = 'N')
 dev.off()
 
 # rda
-bird_rda <- rda(comm_25p ~ hh_attp$pre_post + hh_attp$treatment) 
-anova(bird_rda) 
-anova(bird_rda, by='terms')
+bird_rda <- rda(sub_dat ~  treatment, data =  birds_25p$env, subset = treatment != "upland_pre" & treatment != "upland_post")
+plot(bird_rda, display = c('sp', 'cn'))
+anova(bird_rda, by = 'terms')
 RsquareAdj(bird_rda)
-
-# save rda plot as an svg
-svg("treatment_rda.svg", width = 7, height = 5)  # Open SVG device
 
 plot(bird_rda, display = 'species', type = 'n')
 orditorp(bird_rda, display = 'species', )
 points(bird_rda, display = 'bp', col = 'red') 
 text(bird_rda, display = 'cn', col = 'red') 
-
-dev.off()  # Close SVG device
 
 # cca 
 bird_cca<- cca(comm_25p ~ hh_attp$pre_post + hh_attp$treatment) 
