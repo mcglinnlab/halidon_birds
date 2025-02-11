@@ -72,62 +72,55 @@ stats_trt <- get_mob_stats(subset(birds_25p, treatment != "upland_pre" & treatme
 plot(stats_trt, group_var = 'treatment')
 
 # plot _pre & _post treatments next to each other for comparison
-# N index ----
-N_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'N')
-# Create a bar plot
-barplot_N <- barplot(N_data$value, 
-        names.arg = N_data$treatment, 
-        beside = TRUE, 
-        col = "lightblue", 
-        ylab = "N", 
-        las = 2)  
-arrows(barplot_N, N_data$lo_value, barplot_N, N_data$hi_value, 
-       angle = 90, code = 3, length = 0.1, col = "black")
-# S index ----
-S_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'S')
-# Create a bar plot
-barplot_S <- barplot(S_data$value, 
-                     names.arg = S_data$treatment, 
-                     beside = TRUE, 
-                     col = "lightblue",
-                     ylab = "S", 
-                     las = 2)  
-arrows(barplot_S, S_data$lo_value, barplot_S, S_data$hi_value, 
-       angle = 90, code = 3, length = 0.1, col = "black")
-# S_n index ----
-S_n_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'S_n')
-# Create a bar plot
-barplot_S_n <- barplot(S_n_data$value, 
-                     names.arg = S_n_data$treatment, 
-                     beside = TRUE, 
-                     col = "lightblue", 
-                     ylab = "S_n", 
-                     las = 2)  
-arrows(barplot_S_n, S_n_data$lo_value, barplot_S_n, S_n_data$hi_value, 
-       angle = 90, code = 3, length = 0.1, col = "black")
-# S_PIE index ----
-S_PIE_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'S_PIE')
-# Create a bar plot
-barplot_S_PIE <- barplot(S_PIE_data$value, 
-                     names.arg = S_PIE_data$treatment, 
-                     beside = TRUE, 
-                     col = "lightblue", 
-                     ylab = "S_PIE", 
-                     las = 2)  
-arrows(barplot_S_PIE, S_PIE_data$lo_value, barplot_S_PIE, S_PIE_data$hi_value, 
-       angle = 90, code = 3, length = 0.1, col = "black")
-# S_asymp index ----
-S_asymp_data <- subset(stats_trt$comm_div, scale == 'alpha' & index == 'S_asymp')
-# Create a bar plot
-barplot_S_asymp <- barplot(S_asymp_data$value, 
-                         names.arg = S_asymp_data$treatment, 
-                         beside = TRUE, 
-                         col = "lightblue",
-                         ylab = "S_asymp", 
-                         las = 2)  
-arrows(barplot_S_asymp, S_asymp_data$lo_value, barplot_S_asymp, S_asymp_data$hi_value, 
-       angle = 90, code = 3, length = 0.1, col = "black")
-# ----
+# split out pre-post variable
+stats_trt$comm_div$pre_post <- sapply(strsplit(stats_trt$comm_div$treatment, '_'),
+                                      function(x) x[2])
+stats_trt$comm_div$pre_post <- factor(stats_trt$comm_div$pre_post, 
+                                      levels = c('pre', 'post'))
+stats_trt$comm_div$trt <- sapply(strsplit(stats_trt$comm_div$treatment, '_'),
+                                 function(x) x[1])
+
+stats_trt$comm_div$treatment <- factor(stats_trt$comm_div$treatment, 
+                  levels = c('control-closed_pre', 
+                             'control-closed_post', 
+                             'control-open_pre',
+                             'control-open_post',
+                             'cut-leave_pre',
+                             'cut-leave_post',
+                             'cut-remove_pre',
+                             'cut-remove_post'))
+
+indices <- unique(stats_trt$comm_div$index)
+labs <- c('Abundance (N)' ,'Species richness (S)', '', 'Rarefied Richness (S_n)', 
+          '', 'Asymptotic Richness (S_asymp)', 'Evenness (S_PIE)')
+p <- vector("list", length(indices))
+names(p) <- indices
+
+for(i in seq_along(indices)) {
+
+  p[[i]] <- 
+    subset(stats_trt$comm_div,
+           subset = scale == 'alpha' & index == indices[i]) %>%
+    ggplot(aes(x = treatment, y = value)) + 
+            geom_bar(stat = "identity", aes(fill = pre_post)) + 
+            geom_errorbar(aes(x=treatment, ymin=lo_value, ymax=hi_value), width=0.15, 
+                          colour="black", alpha=0.7, size=0.5) +
+            ylab(labs[i]) +
+            theme_bw()  
+}
+
+p$N
+p$S
+p$S_n
+p$S_PIE
+p$S_asymp
+
+# model year and observer differences (if any)
+stats_obs <- get_mob_stats(subset(birds_25p, treatment != "upland_pre" & treatment != "upland_post"), 
+                           group_var = 'pre_post', 
+                           index = c('N', 'S', 'S_n', 'S_PIE', 'S_asymp'),
+                           ci_n_boot = 1)
+
 
 # todo: 
 # recode treatments to be more informative
