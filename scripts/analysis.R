@@ -91,7 +91,7 @@ stats_trt$comm_div$treatment <- factor(stats_trt$comm_div$treatment,
                              'cut-remove_post'))
 
 indices <- unique(stats_trt$comm_div$index)
-labs <- c('Abundance (N)' ,'Species richness (S)', '', 'Rarefied Richness (S_n)', 
+labs <- c('Abundance (N)' ,'Species Richness (S)', '', 'Rarefied Richness (S_n)', 
           '', 'Asymptotic Richness (S_asymp)', 'Evenness (S_PIE)')
 p <- vector("list", length(indices))
 names(p) <- indices
@@ -102,11 +102,10 @@ for(i in seq_along(indices)) {
     subset(stats_trt$comm_div,
            subset = scale == 'alpha' & index == indices[i]) %>%
     ggplot(aes(x = treatment, y = value)) + 
-            geom_bar(stat = "identity", aes(fill = pre_post)) + 
+            geom_bar(stat = "identity", aes(fill = pre_post),) +
             geom_errorbar(aes(x=treatment, ymin=lo_value, ymax=hi_value), width=0.15, 
                           colour="black", alpha=0.7, size=0.5) +
-            ylab(labs[i]) +
-            theme_bw()  
+            ylab(labs[i]) + theme_bw() 
 }
 
 p$N
