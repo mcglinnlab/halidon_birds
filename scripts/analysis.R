@@ -102,10 +102,11 @@ for(i in seq_along(indices)) {
     subset(stats_trt$comm_div,
            subset = scale == 'alpha' & index == indices[i]) %>%
     ggplot(aes(x = treatment, y = value)) + 
-            geom_bar(stat = "identity", aes(fill = pre_post),) +
+            geom_bar(stat = "identity", aes(fill = pre_post)) +
             geom_errorbar(aes(x=treatment, ymin=lo_value, ymax=hi_value), width=0.15, 
                           colour="black", alpha=0.7, size=0.5) +
-            ylab(labs[i]) + theme_bw() 
+            ylab(labs[i]) + theme_bw() + 
+            scale_fill_manual(values = alpha(c("tan", "brown")))
 }
 
 p$N
