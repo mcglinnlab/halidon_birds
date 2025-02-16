@@ -105,8 +105,10 @@ for(i in seq_along(indices)) {
             geom_bar(stat = "identity", aes(fill = pre_post)) +
             geom_errorbar(aes(x=treatment, ymin=lo_value, ymax=hi_value), width=0.15, 
                           colour="black", alpha=0.7, size=0.5) +
-            ylab(labs[i]) + theme_bw() + 
-            scale_fill_manual(values = alpha(c("tan", "brown")))
+            ylab(labs[i]) + theme_bw() + xlab("Treatment") +
+            scale_fill_manual(name = "Pre/Post" , 
+                              values = alpha(c("tan", "brown"))) +
+            theme(axis.title = element_text(face = "bold"))
 }
 
 p$N
@@ -115,11 +117,12 @@ p$S_n
 p$S_PIE
 p$S_asymp
 
-# model year and observer differences (if any)
+ # model year and observer differences (if any)
 stats_obs <- get_mob_stats(subset(birds_25p, treatment != "upland_pre" & treatment != "upland_post"), 
                            group_var = 'pre_post', 
                            index = c('N', 'S', 'S_n', 'S_PIE', 'S_asymp'),
                            ci_n_boot = 1)
+
 
 
 # todo: 
@@ -143,7 +146,8 @@ plot(stats_pp, group_var = 'pre_post', index = 'N')
 dev.off()
 
 # rda
-bird_rda <- rda(sub_dat ~  treatment, data =  birds_25p$env, subset = treatment != "upland_pre" & treatment != "upland_post")
+bird_rda <- rda(sub_dat ~  treatment, data =  birds_25p$env, 
+                subset = treatment != "upland_pre" & treatment != "upland_post")
 plot(bird_rda, display = c('sp', 'cn'))
 anova(bird_rda, by = 'terms')
 RsquareAdj(bird_rda)
