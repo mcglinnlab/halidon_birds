@@ -152,10 +152,12 @@ plot(bird_rda, display = c('sp', 'cn'))
 anova(bird_rda, by = 'terms')
 RsquareAdj(bird_rda)
 
+svg("./figs/RDA_plot.svg", width = 7*1.5, height = 5)
 plot(bird_rda, display = 'species', type = 'n')
 orditorp(bird_rda, display = 'species', )
 points(bird_rda, display = 'bp', col = 'red') 
 text(bird_rda, display = 'cn', col = 'red') 
+dev.off()
 
 # cca 
 bird_cca<- cca(comm_25p ~ hh_attp$pre_post + hh_attp$treatment) 
