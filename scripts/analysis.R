@@ -9,6 +9,10 @@ library(nlme)
 comm_25p <- read.csv('./data/comm_25p.csv', row.names = 1)
 comm_25p[1:5, 1:5]
 
+# drop the species that never occur
+comm_25p <- comm_25p[, colSums(comm_25p) > 0]
+
+
 hh_attp <- read.csv('./data/hh_attp.csv')
 
 # group hack and squirt with control closed treatment
@@ -32,13 +36,53 @@ print(birds_25p)
 # within 25m. Jackson only used 25m observations
 
 indices <- c('N', 'S', 'S_n', 'S_PIE', 'S_asymp')
-sub_dat <- subset(birds_25p,  treatment != "upland")
+sub_dat <- subset(birds_25p, 
+                  !(treatment %in% c("upland_pre", "upland_post")))
 
-sub_dat <- birds_25p$comm
+#sub_dat <- birds_25p$comm
 
-sub_rda <- rda(sub_dat ~  treatment, data =  birds_25p$env, subset = treatment != "upland_pre" & treatment != "upland_post")
-plot(sub_rda, display = c('sp', 'cn'))
+sub_rda <- rda(sub_dat$comm ~  treatment + site, data =  sub_dat$env)
+RsquareAdj(sub_rda)
 anova(sub_rda, by = 'terms')
+
+plot(sub_rda, display = c('sp', 'cn'))
+
+
+# rarefaction analysis ----------------
+# check if any samples have zero birds
+
+table(rowSums(sub_dat$comm))
+
+# 7 sites have no individuals - 
+# this is a problem for the method
+# drop these sites real quick
+
+sub_dat2 <- subset(sub_dat, rowSums(sub_dat$comm) > 0)
+
+# getting cryptic bug here
+#tmp <- get_delta_stats(sub_dat2, 'treatment',
+#                type = 'discrete', log_scale = FALSE, n_perm = 3,
+#                overall_p = TRUE)
+
+# go back to sites with no observations
+S_op_pre <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'control-open_pre', ])
+S_op_post <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'control-open_post', ])
+S_cl_pre <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'control-closed_pre', ])
+S_cl_post <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'control-closed_post', ])
+S_CL_pre <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'cut-leave_pre', ])
+S_CL_post <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'cut-leave_post', ])
+S_CR_pre <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'cut-remove_pre', ])
+S_CR_post <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'cut-remove_post', ])
+
+# remove error bars
+plot(S_op_pre, ylim = c(0, 30), xlim = c(0, 40), ci = 0, lwd = 2, col= 'grey')
+lines(S_op_post, col='black', ci = 0, lwd = 2)
+lines(S_cl_pre, col='pink', ci = 0, lwd = 2)
+lines(S_cl_post, col='red', ci = 0, lwd = 2)
+lines(S_CL_pre, col='lightblue', ci = 0, lwd = 2)
+lines(S_CL_post, col='blue', ci = 0, lwd = 2)
+lines(S_CR_pre, col='lightgreen', ci = 0, lwd = 2)
+lines(S_CR_post, col='darkgreen', ci = 0, lwd = 2)
 
 bggn_lm <- lm(sub_dat$BGGN ~ treatment, data =  birds_25p$env, subset = treatment != "upland")
 summary(bggn_lm)
