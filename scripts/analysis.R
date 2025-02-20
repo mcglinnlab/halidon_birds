@@ -20,7 +20,6 @@ hh_attp <- hh_attp %>%
   mutate(treatment = ifelse(treatment == "hack-squirt", "control-closed", treatment)) %>%
   group_by(treatment)
 
-
 birds_25p <- make_mob_in(comm_25p, hh_attp,
                        coord_names = c('utm_easting', 'utm_northing'))
 
@@ -41,12 +40,22 @@ sub_dat <- subset(birds_25p,
 
 #sub_dat <- birds_25p$comm
 
-sub_rda <- rda(sub_dat$comm ~  treatment + site, data =  sub_dat$env)
+sub_rda <- rda(sqrt(sub_dat$comm) ~  treatment, data =  sub_dat$env)
 RsquareAdj(sub_rda)
 anova(sub_rda, by = 'terms')
 
-plot(sub_rda, display = c('sp', 'cn'))
+par(mfrow=c(1,1))
+plot(sub_rda, display = c('cn','sp'), type = 'n')
+orditorp(sub_rda, display = 'sp', priority = colSums(sub_dat$comm), air = 1.5)
+#text(sub_rda, display = 'cn', col = cols)
 
+# indirect ordination
+#
+sub_pca <- rda(sqrt(sub_dat$comm))
+#sub_envfit <- envfit(sub_pca, sub_dat$env[ , c("treatment")], na.rm = TRUE)
+plot(sub_pca, display = 'sp')
+# indirect ordination does not differ strongly from the direct ordination using the
+# rda method
 
 # rarefaction analysis ----------------
 # check if any samples have zero birds
