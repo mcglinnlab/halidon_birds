@@ -40,7 +40,7 @@ sub_dat <- subset(birds_25p,
 
 #sub_dat <- birds_25p$comm
 
-sub_rda <- rda(sqrt(sub_dat$comm) ~  treatment, data =  sub_dat$env)
+sub_rda <- rda(sub_dat$comm ~  treatment, data =  sub_dat$env)
 RsquareAdj(sub_rda)
 anova(sub_rda, by = 'terms')
 
@@ -93,8 +93,8 @@ lines(S_CL_post, col='blue', ci = 0, lwd = 2)
 lines(S_CR_pre, col='lightgreen', ci = 0, lwd = 2)
 lines(S_CR_post, col='darkgreen', ci = 0, lwd = 2)
 
-bggn_lm <- lm(sub_dat$BGGN ~ treatment, data =  birds_25p$env, subset = treatment != "upland")
-summary(bggn_lm)
+#bggn_lm <- lm(sub_dat$BGGN ~ treatment, data =  birds_25p$env, subset = treatment != "upland")
+#summary(bggn_lm)
 
 boxplot(sub_dat$BHNU ~ treatment, data =  birds_25p$env, subset = treatment != "upland")
 
@@ -175,14 +175,6 @@ stats_obs <- get_mob_stats(subset(birds_25p, treatment != "upland_pre" & treatme
                            group_var = 'pre_post', 
                            index = c('N', 'S', 'S_n', 'S_PIE', 'S_asymp'),
                            ci_n_boot = 1)
-
-
-
-# todo: 
-# recode treatments to be more informative
-# look at temporal change
-
-plot(1:10, 1:10, col = "#1462AE", pch =19)
 
 # temporal analysis of pre / post 
 stats_pp <- get_mob_stats(birds_25p, 
