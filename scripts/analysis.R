@@ -46,6 +46,7 @@ anova(sub_rda, by = 'terms')
 
 par(mfrow=c(1,1))
 plot(sub_rda, display = c('cn','sp'), type = 'n')
+text(sub_rda, display = 'cn', col = 'red') 
 orditorp(sub_rda, display = 'sp', priority = colSums(sub_dat$comm), air = 1.5)
 #text(sub_rda, display = 'cn', col = cols)
 
@@ -84,7 +85,8 @@ S_CR_pre <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'cut-remove_pre', ])
 S_CR_post <- specaccum(sub_dat$comm[sub_dat$env$treatment == 'cut-remove_post', ])
 
 # remove error bars
-plot(S_op_pre, ylim = c(0, 30), xlim = c(0, 40), ci = 0, lwd = 2, col= 'grey')
+plot(S_op_pre, ylim = c(0, 30), xlim = c(0, 40), ylab = "Species Richness (S)",
+     xlab = "Samples", ci = 0, lwd = 2, col= 'grey')
 lines(S_op_post, col='black', ci = 0, lwd = 2)
 lines(S_cl_pre, col='pink', ci = 0, lwd = 2)
 lines(S_cl_post, col='red', ci = 0, lwd = 2)
@@ -92,6 +94,11 @@ lines(S_CL_pre, col='lightblue', ci = 0, lwd = 2)
 lines(S_CL_post, col='blue', ci = 0, lwd = 2)
 lines(S_CR_pre, col='lightgreen', ci = 0, lwd = 2)
 lines(S_CR_post, col='darkgreen', ci = 0, lwd = 2)
+legend("bottomright", legend = c("Control-Open Pre", "Control-Open Post", "Control-Closed Pre",
+                              "Control-Closed Post", "Cut-Leave Pre", "Cut-Leave Post", 
+                              "Cut-Remove Pre", "Cut-Remove Post"), 
+       col = c("grey", "black", "pink", "red", "lightblue", "blue", "lightgreen", "darkgreen"), 
+       lwd = 2, bty = "n")
 
 #bggn_lm <- lm(sub_dat$BGGN ~ treatment, data =  birds_25p$env, subset = treatment != "upland")
 #summary(bggn_lm)
