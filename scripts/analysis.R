@@ -2,6 +2,7 @@ library(mobr)
 library(dplyr)
 library(vegan)
 library(nlme)
+library(ggplot2)
 #library(remotes)
 #install_github("mobiodiv/mobr", ref = "dev")
 
@@ -177,11 +178,55 @@ p$S_n
 p$S_PIE
 p$S_asymp
 
- # model year and observer differences (if any)
+# model year and observer differences (if any)
 stats_obs <- get_mob_stats(subset(birds_25p, treatment != "upland_pre" & treatment != "upland_post"), 
                            group_var = 'pre_post', 
                            index = c('N', 'S', 'S_n', 'S_PIE', 'S_asymp'),
-                           ci_n_boot = 1)
+                           ci_n_boot = 100)
+
+plot(stats_obs, group_var = "pre_post")
+
+indices_obs <- unique(stats_obs$comm_div$index)
+labs_obs <- c('Abundance (N)' ,'Species Richness (S)', '', 'Rarefied Richness (S_n)', 
+          '', 'Asymptotic Richness (S_asymp)', 'Evenness (S_PIE)')
+p_obs <- vector("list", length(indices_obs))
+names(p_obs) <- indices
+
+for(i in seq_along(indices_obs)) {
+  
+  p_obs[[i]] <- 
+    subset(stats_obs$comm_div,
+           subset = scale == 'alpha' & index == indices_obs[i]) %>%
+    ggplot(aes(x = factor(pre_post, levels = rev(levels(factor(pre_post)))), 
+               y = value, fill = pre_post)) +  # Ensuring colors apply
+    geom_bar(stat = "identity") +
+    geom_errorbar(aes(ymin=lo_value, ymax=hi_value), width=0.15, 
+                  colour="black", alpha=0.7, linewidth=0.5) +
+    ylab(labs[i]) + theme_bw() + xlab("Treatment") +
+    scale_fill_manual(name = "Pre/Post", 
+                      values = c("brown", "tan")) +  # Remove alpha() for proper color display
+    theme(axis.title = element_text(face = "bold"))
+}
+
+
+p_obs$N
+p_obs$S
+p_obs$S_n
+
+# observer S_PIE plot
+obs_S_PIE <- 
+  subset(stats_obs$comm_div,
+         subset = scale == 'alpha' & index == indices_obs[7]) %>%
+  ggplot(aes(x = factor(pre_post, levels = rev(levels(factor(pre_post)))), 
+             y = value, fill = pre_post)) +  # Ensuring colors apply
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin=lo_value, ymax=hi_value), width=0.15, 
+                colour="black", alpha=0.7, linewidth=0.5) +
+  ylab("Evenness (S_PIE)") + theme_bw() + xlab("Treatment") +
+  scale_fill_manual(name = "Pre/Post", 
+                    values = c("brown", "tan")) +  # Remove alpha() for proper color display
+  theme(axis.title = element_text(face = "bold"))
+obs_S_PIE
 
 # temporal analysis of pre / post 
 stats_pp <- get_mob_stats(birds_25p, 
