@@ -203,6 +203,7 @@ for(i in seq_along(indices_obs)) {
     geom_errorbar(aes(ymin=lo_value, ymax=hi_value), width=0.15, 
                   colour="black", alpha=0.7, linewidth=0.5) +
     ylab(labs[i]) + theme_bw() + xlab("Treatment") +
+    scale_x_discrete(labels = c("pre" = "Barratt Heitmann", "post" = "Barnes")) +
     scale_fill_manual(name = "Pre/Post", 
                       values = c("brown", "tan")) +  # Remove alpha() for proper color display
     theme(axis.title = element_text(face = "bold"))
@@ -223,6 +224,7 @@ obs_S_PIE <-
   geom_errorbar(aes(ymin=lo_value, ymax=hi_value), width=0.15, 
                 colour="black", alpha=0.7, linewidth=0.5) +
   ylab("Evenness (S_PIE)") + theme_bw() + xlab("Treatment") +
+  scale_x_discrete(labels = c("pre" = "Barratt Heitmann", "post" = "Barnes")) +
   scale_fill_manual(name = "Pre/Post", 
                     values = c("brown", "tan")) +  # Remove alpha() for proper color display
   theme(axis.title = element_text(face = "bold"))
