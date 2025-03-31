@@ -101,6 +101,21 @@ legend("bottomright", legend = c("Control-Open Pre", "Control-Open Post", "Contr
        col = c("grey", "black", "pink", "red", "lightblue", "blue", "lightgreen", "darkgreen"), 
        lwd = 2, bty = "n")
 
+# new rarefaction with less colors
+plot(S_op_pre, ylim = c(0, 30), xlim = c(0, 40), ylab = "Species Richness (S)",
+     xlab = "Samples", ci = 0, lwd = 2, col= 'blue', lty= 'dotted')
+lines(S_op_post, col='blue', ci = 0, lwd = 2)
+lines(S_cl_pre, col='orange', ci = 0, lwd = 2, lty= 'dotted')
+lines(S_cl_post, col='orange', ci = 0, lwd = 2)
+lines(S_CL_pre, col='green', ci = 0, lwd = 2, lty= 'dotted')
+lines(S_CL_post, col='green', ci = 0, lwd = 2)
+lines(S_CR_pre, col='purple', ci = 0, lwd = 2, lty= 'dotted')
+lines(S_CR_post, col='purple', ci = 0, lwd = 2)
+legend("bottomright", legend = c("Control-Open", "Control-Closed", 
+                                 "Cut-Leave", "Cut-Remove", "Pre", "Post"), 
+       col = c("blue", "orange", "green", "purple", "black", "black"), 
+       lwd = 2, lty = c(1, 1, 1, 1, 2, 1), bty = "n")
+
 #bggn_lm <- lm(sub_dat$BGGN ~ treatment, data =  birds_25p$env, subset = treatment != "upland")
 #summary(bggn_lm)
 
