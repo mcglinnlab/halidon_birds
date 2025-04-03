@@ -183,7 +183,7 @@ for(i in seq_along(indices)) {
                           colour="black", alpha=0.7, size=0.5) +
             ylab(labs[i]) + theme_bw() + xlab("Treatment") +
             scale_fill_manual(name = "Pre/Post" , 
-                              values = alpha(c("tan", "brown"))) +
+                              values = alpha(c("lightblue", "darkblue"))) +
             theme(axis.title = element_text(face = "bold"))
 }
 
@@ -290,6 +290,24 @@ boxplot(comm_25p$BACS ~ hh_attp$year, subset = comm_25p$BACS > 0)
 # multiple regression modeling of diversity indices
 subset(stats_trt$comm_div, index = "N")
 
+# vegetation change between pre/post over time figure
+ggplot(hh_attp, aes(x = treatment, y = canopy_cover, fill = pre_post)) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  theme_minimal() +
+  labs(x = "Treatment", y = "Canopy Cover", title = "Average Canopy Cover Before and After Treatment") +
+  scale_fill_manual(name = "Pre/Post", values = c("seagreen", "springgreen")) +
+  theme(axis.title = element_text(face = "bold"))
 
+ggplot(hh_attp, aes(x = treatment, y = dist_avg, fill = pre_post)) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  theme_minimal() +
+  labs(x = "Treatment", y = "Tree Density^-1", title = "Average Tree Density^-1 Before and After Treatment") +
+  scale_fill_manual(name = "Pre/Post", values = c("seagreen", "springgreen")) +
+  theme(axis.title = element_text(face = "bold"))
 
-
+ggplot(hh_attp, aes(x = treatment, y = dbh_avg, fill = pre_post)) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  theme_minimal() +
+  labs(x = "Treatment", y = "Tree Basal Area", title = "Average Basal Area Before and After Treatment") +
+  scale_fill_manual(name = "Pre/Post", values = c("seagreen", "springgreen")) +
+  theme(axis.title = element_text(face = "bold"))
