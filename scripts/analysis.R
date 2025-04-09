@@ -287,27 +287,98 @@ text(bird_cca, display = 'cn', col = 'red')
 
 boxplot(comm_25p$BACS ~ hh_attp$year, subset = comm_25p$BACS > 0)
 
+ggplot(birds_25p, aes(x = treatment, y = comm_25p$BACS))
+
 # multiple regression modeling of diversity indices
 subset(stats_trt$comm_div, index = "N")
 
 # vegetation change between pre/post over time figure
+hh_attp$pre_post <- factor(hh_attp$pre_post, levels = c("pre", "post"))
+
 ggplot(hh_attp, aes(x = treatment, y = canopy_cover, fill = pre_post)) +
   geom_bar(stat = "summary", fun = "mean", position = "dodge") +
   theme_minimal() +
   labs(x = "Treatment", y = "Canopy Cover", title = "Average Canopy Cover Before and After Treatment") +
-  scale_fill_manual(name = "Pre/Post", values = c("seagreen", "springgreen")) +
+  scale_fill_manual(name = "Pre/Post", values = c("pre" = "lightblue", "post" = "darkblue")) +
   theme(axis.title = element_text(face = "bold"))
 
 ggplot(hh_attp, aes(x = treatment, y = dist_avg, fill = pre_post)) +
   geom_bar(stat = "summary", fun = "mean", position = "dodge") +
   theme_minimal() +
   labs(x = "Treatment", y = "Tree Density^-1", title = "Average Tree Density^-1 Before and After Treatment") +
-  scale_fill_manual(name = "Pre/Post", values = c("seagreen", "springgreen")) +
+  scale_fill_manual(name = "Pre/Post", values = c("pre" = "lightblue", "post" = "darkblue")) +
   theme(axis.title = element_text(face = "bold"))
 
 ggplot(hh_attp, aes(x = treatment, y = dbh_avg, fill = pre_post)) +
   geom_bar(stat = "summary", fun = "mean", position = "dodge") +
   theme_minimal() +
   labs(x = "Treatment", y = "Tree Basal Area", title = "Average Basal Area Before and After Treatment") +
-  scale_fill_manual(name = "Pre/Post", values = c("seagreen", "springgreen")) +
+  scale_fill_manual(name = "Pre/Post", values = c("pre" = "lightblue", "post" = "darkblue")) +
   theme(axis.title = element_text(face = "bold"))
+
+## BACS means as a function of treatment
+birds_25p$env$treatment2 <- with(birds_25p$env, paste(treatment, pre_post, sep='_'))
+
+avgs <- tapply(birds_25p$comm$BACS, list(birds_25p$env$treatment2), mean)
+se <- tapply(birds_25p$comm$BACS, list(birds_25p$env$treatment2), function(x) sd(x)/sqrt(length(x)))
+
+avgs <- avgs[c(2,1, 4,3, 6,5, 8,7, 10,9)]
+se <- se[c(2,1, 4,3, 6,5, 8,7, 10,9)]
+
+dat <- data.frame(grp = names(avgs), abu = avgs, se,
+                  pre_post = sapply(strsplit(names(avgs), '_'), function(x)x[2]))
+dat$grp <- factor(dat$grp, levels = names(avgs)) # to reorder the group variable (again :()
+                 
+
+ggplot(dat, aes(x = grp, y = abu, fill = pre_post)) +
+ geom_bar(stat = "identity", alpha = 0.7, color = "black") + 
+  geom_errorbar(aes(ymin = abu - se, ymax = abu + se), width = 0.4, colour = "black",
+    alpha = 0.9, size = 1) + scale_fill_manual(name = "Pre/Post", 
+                                                 values = c("pre" = "lightblue", 
+                                                            "post" = "darkblue")) +
+  theme_bw() + labs( x = "Treatment", y = "BACS Abundance") 
+
+## BHNU means as a function of treatment
+
+avgs <- tapply(birds_25p$comm$BHNU, list(birds_25p$env$treatment2), mean)
+se <- tapply(birds_25p$comm$BHNU, list(birds_25p$env$treatment2), function(x) sd(x)/sqrt(length(x)))
+
+avgs <- avgs[c(2,1, 4,3, 6,5, 8,7, 10,9)]
+se <- se[c(2,1, 4,3, 6,5, 8,7, 10,9)]
+
+dat <- data.frame(grp = names(avgs), abu = avgs, se,
+                  pre_post = sapply(strsplit(names(avgs), '_'), function(x)x[2]))
+dat$grp <- factor(dat$grp, levels = names(avgs)) # to reorder the group variable (again :()
+
+
+ggplot(dat, aes(x = grp, y = abu, fill = pre_post)) +
+  geom_bar(stat = "identity", alpha = 0.7, color = "black") + 
+  geom_errorbar(aes(ymin = abu - se, ymax = abu + se), width = 0.4, colour = "black",
+                alpha = 0.9, size = 1) + scale_fill_manual(name = "Pre/Post", 
+                                                           values = c("pre" = "lightblue", 
+                                                                      "post" = "darkblue")) +
+  theme_bw() + labs( x = "Treatment", y = "BHNU Abundance") 
+
+## INBU means as a function of treatment
+
+habitat <- ifelse(grepl('W', birds_25p$env$site), 'wetland', 'upland')
+
+avgs <- tapply(birds_25p$comm$INBU, list(habitat), mean)
+se <- tapply(birds_25p$comm$BHNU, list(habitat), function(x) sd(x)/sqrt(length(x)))
+
+#avgs <- avgs[c(2,1, 4,3, 6,5, 8,7, 10,9)]
+#se <- se[c(2,1, 4,3, 6,5, 8,7, 10,9)]
+
+dat <- data.frame(grp = names(avgs), abu = avgs, se,
+                  pre_post = sapply(strsplit(names(avgs), '_'), function(x)x[2]))
+dat$grp <- factor(dat$grp, levels = names(avgs)) # to reorder the group variable (again :()
+
+
+ggplot(dat, aes(x = grp, y = abu, fill = grp)) +
+  geom_bar(stat = "identity", alpha = 0.7, color = "black") + 
+  geom_errorbar(aes(ymin = abu - se, ymax = abu + se), width = 0.4, colour = "black",
+                alpha = 0.9, size = 1) + scale_fill_manual(name = "Pre/Post", 
+                                                           values = c("wetland" = "cornflowerblue", 
+                                                                      "upland" = "seagreen")) +
+  theme_bw() + labs( x = "Treatment", y = "INBU Abundance") 
+
